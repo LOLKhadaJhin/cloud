@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no,initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title th:text="${title}">私有云</title>
+    <style>
+        .center {
+            text-align: center;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="/static/css/webuploader.css">
+    <link type="text/css" rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.lazyload.min.js"></script>
+    <script src="/static/js/webuploader.js"></script>
+    <style>
+        #upload {
+            display: none;
+            position: relative;
+            width: 100%;
+            height: 220px;
+            /*border:1px solid red;*/
+        }
+
+        #upload-container, #upload-list {
+            position: absolute;
+            width: 40%;
+            margin: 10px 5%;
+            height: 200px;
+        }
+
+        #upload-container {
+            cursor: pointer;
+            border-radius: 15px;
+            background: #EEEFFF;
+        }
+
+        #upload-list {
+            border: 1px solid #EEE;
+            border-radius: 5px;
+            padding: 10px 20px;
+            right: 10px;
+        }
+
+        #upload-container > span {
+            width: 100%;
+            text-align: center;
+            color: gray;
+            display: block;
+            padding-top: 15%;
+        }
+
+        .upload-item {
+            margin-top: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed gray;
+        }
+
+        .percentage {
+            height: 5px;
+            background: green;
+        }
+
+        .btn-delete, .btn-retry {
+            cursor: pointer;
+            color: gray;
+        }
+
+        .btn-delete:hover {
+            color: orange;
+        }
+
+        .btn-retry:hover {
+            color: green;
+        }
+
+        #list {
+            /*position: relative;*/
+            /*margin-top: 250px;*/
+            /*top: 250px;*/
+        }
+    </style>
+    <script>
+        $(function () {
+            if ($(window).height() < $(window).width()) {
+                // $("img").css("width", "50%");
+                $("img").css("max-width", "100%");
+                $("img").css("max-height", $(window).height() + "px");
+            } else {
+                $("img").css("width", "100%");
+            }
+            console.log("高：" + $(window).height())
+            console.log("宽：" + $(window).width())
+        })
+    </script>
+</head>
+<body>
+<button id="toggle" type="button" class="btn btn-primary btn-lg btn-block">上传</button>
+<div id="upload">
+    <div id="upload-container">
+        <span>点击或将文件拖拽至此上传</span>
+    </div>
+    <div id="upload-list">
+    </div>
+    <button id="picker" style="display: none;">点击上传文件</button>
+</div>
+<div id="list">
+    <div class="list-group">
+    <span th:each="item:${directoryList}">
+    <a class="list-group-item" th:href="@{${item.value}}" th:text="${item.key}">name</a>
+    </span>
+    </div>
+    <ul class="list-group">
+        <li class="list-group-item" th:each="item:${fileList}">
+            <a th:href="@{${item.value}}" th:text="${item.key}">name</a>
+        </li>
+    </ul>
+    <ul class="list-group">
+        <li class="list-group-item" th:each="item:${videoList}">
+            <a th:href="@{${item.value}}" th:text="${item.key}">name</a>
+        </li>
+    </ul>
+    <div class="center" th:each="item:${imgList}">
+        <img class="lazy" th:data-original="@{${item.value}}" th:alt="${item.key}">
+    </div>
+</div>
+<script>
+    $(function () {
+        $("img.lazy").lazyload();
+        $("#toggle").click(function () {
+            $("#upload").fadeToggle()
+        });
+
+    })
+</script>
+<script type="text/javascript" th:inline="javascript">
+    $('#upload-container').click(function (event) {
+        $("#picker").find('input').click();
+    });
+    /*<![CDATA[*/
+    var define = /*[[${define}]]*/ "";
+    var fileSuffix = /*[[${fileSuffix}]]*/ "";
+    var urlPrefix = /*[[${urlPrefix}]]*/ "";
+    /*]]>*/
+    var uploader = WebUploader.create({
+        auto: true,// 选完文件后，是否自动上传。
+        swf: urlPrefix + '/static/Uploader.swf',// swf文件路径
+        server: urlPrefix + '/upload',// 文件接收服务端。
+        formData: {"define": define, "fileSuffix": fileSuffix},
+        dnd: '#upload-container',
+        pick: '#picker',// 内部根据当前运行是创建，可能是input元素，也可能是flash. 这里是div的id
+        multiple: true, // 选择多个
+        chunked: true,// 开启分片上传。
+        threads: 20, // 上传并发数。允许同时最大上传进程数。
+        method: 'POST', // 文件上传方式，POST或者GET。
+        fileSizeLimit: 1024 * 1024 * 1024 * 10, //验证文件总大小是否超出限制, 超出则不允许加入队列。
+        fileSingleSizeLimit: 1024 * 1024 * 1024 * 2, //验证单个文件大小是否超出限制, 超出则不允许加入队列。
+        fileVal: 'upload' // [默认值：'file'] 设置文件上传域的name。
+    });
+
+    uploader.on("beforeFileQueued", function (file) {
+        console.log(file); // 获取文件的后缀
+    });
+
+    uploader.on('fileQueued', function (file) {
+        // 选中文件时要做的事情，比如在页面中显示选中的文件并添加到文件列表，获取文件的大小，文件类型等
+        console.log(file.ext); // 获取文件的后缀
+        console.log(file.size);// 获取文件的大小
+        console.log(file.name);
+        var html = '<div class="upload-item"><span>文件名：' + file.name + '</span><span data-file_id="' + file.id + '" class="btn-delete">删除</span><span data-file_id="' + file.id + '" class="btn-retry">重试</span><div class="percentage ' + file.id + '" style="width: 0%;"></div></div>';
+        $('#upload-list').append(html);
+        uploader.md5File(file)//大文件秒传
+
+            // 及时显示进度
+            .progress(function (percentage) {
+                console.log('Percentage:', percentage);
+            })
+
+            // 完成
+            .then(function (val) {
+                console.log('md5 result:', val);
+            });
+    });
+
+    uploader.on('uploadProgress', function (file, percentage) {
+        console.log(percentage * 100 + '%');
+        var width = $('.upload-item').width();
+        $('.' + file.id).width(width * percentage);
+    });
+
+    uploader.on('uploadSuccess', function (file, response) {
+        console.log(file.id + "传输成功");
+    });
+
+    uploader.on('uploadError', function (file) {
+        console.log(file);
+        console.log(file.id + 'upload error')
+    });
+
+    $('#upload-list').on('click', '.upload-item .btn-delete', function () {
+        // 从文件队列中删除某个文件id
+        file_id = $(this).data('file_id');
+        // uploader.removeFile(file_id); // 标记文件状态为已取消
+        uploader.removeFile(file_id, true); // 从queue中删除
+        console.log(uploader.getFiles());
+    });
+
+    $('#upload-list').on('click', '.btn-retry', function () {
+        uploader.retry($(this).data('file_id'));
+    });
+
+    uploader.on('uploadComplete', function (file) {
+        console.log(uploader.getFiles());
+    });
+</script>
+</body>
+</html>

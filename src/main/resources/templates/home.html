@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no,initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title th:text="${title}">私有云</title>
+    <link type="text/css" rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <script type="text/javascript" href="/static/js/bootstrap.min.js"></script></head>
+<body>
+<div class="list-group">
+    <span th:each="item:${custom}">
+    <a class="list-group-item" th:href="@{'cloud'+${item.key}}" th:text="${item.value}">name</a>
+    </span>
+</div>
+<div class="list-group">
+    <span th:each="item:${mark}">
+    <a class="list-group-item" th:href="@{'cloud'+${item.key}}" th:text="${item.value}">name</a>
+    </span>
+</div>
+</body>
+</html>
